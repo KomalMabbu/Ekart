@@ -1,11 +1,6 @@
-![CI/CD Pipeline Output](c:\Users\mabbu\Desktop\Jenkins_pipeline.png)
-
-![SonarQube Output](c:\Users\mabbu\Desktop\SonarQube_Analysis.png)
-
-![Nexus artifacts](c:\Users\mabbu\Desktop\NexusArtifacts.png)
-
-![Multi Node Cluster](c:\Users\mabbu\Desktop\Nodes.png)
-
-![Pods](c:\Users\mabbu\Desktop\Pods.png)
-
-![Services](c:\Users\mabbu\Desktop\Services_list.png)
+![CI/CD Pipeline Output](images/Jenkins_pipeline.png)
+![SonarQube Output](images/SonarQube_Analysis.png)
+![Nexus artifacts](images/NexusArtifacts.png)
+![Multi Node Cluster](images/Nodes.png)
+![Pods](images/Pods.png)
+![Services](images/Services_list.png)

@@ -1,0 +1,99 @@
+pipeline {
+    agent any
+    
+    tools {
+        maven 'maven3'
+        jdk 'jdk17'
+    }
+    
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+    }
+
+    stages {
+        stage('Git checkout') {
+            steps {
+                git 'https://github.com/KomalMabbu/Ekart.git'
+            }
+        }
+    
+        stage('Compile') {
+            steps {
+                sh "mvn compile"
+            }
+        }
+    
+        stage('Unit Test') {
+            steps {
+                sh "mvn test -DskipTests=true"
+            }
+        }
+
+    
+        stage('SonarQube analysis') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectKey=EKART \
+                    -Dsonar.java.binaries=. '''
+                }
+            }
+        }
+    
+        stage('OWASP Dependency Check') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'DC'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                sh "mvn package -DskipTests=true"
+            }
+        }
+        
+        stage('Deploy to Nexus') {
+            steps {
+                withMaven(globalMavenSettingsConfig: 'global-maven', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true){
+                    sh "mvn deploy -DskipTests=true"
+                }
+            }
+        }
+        
+        stage('Build & Tag Docker Image') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+                            sh "docker build -t komalmabbu/ekart:latest -f docker/Dockerfile ."
+                    }
+                }
+            }
+        }
+        
+        stage('Trivy Scan') {
+            steps {
+                sh "trivy image komalmabbu/ekart:latest > trivy-report.txt"
+            }
+        }
+        
+        stage('Docker Image push') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+                            sh "docker push komalmabbu/ekart:latest"
+                    }
+                }
+            }
+        }
+        
+        stage('Kubernetes Deploy') {
+            steps {
+                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', serverUrl: 'https://172.31.25.254:6443']]) {
+                    sh "kubectl apply -f deploymentservice.yml -n webapps"
+                    sh "kubectl get svc -n webapps"
+                }
+            }
+        }    
+        
+    }
+}

@@ -1,6 +1,0 @@
-![CI/CD Pipeline Output](images/Jenkins_pipeline.png)
-![SonarQube Output](images/SonarQube_Analysis.png)
-![Nexus artifacts](images/NexusArtifacts.png)
-![Multi Node Cluster](images/Nodes.png)
-![Pods](images/Pods.png)
-![Services](images/Services_list.png)
